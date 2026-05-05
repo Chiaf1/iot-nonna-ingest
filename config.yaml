@@ -1,0 +1,8 @@
+broker: tcp://localhost:1883
+clientId: go-mqtt-client
+qos: 1
+connectionInterval: 3s
+maxRetry: 0
+maxDelay: 1m0s
+topics:
+    - topic/test
