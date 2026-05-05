@@ -1,45 +1,12 @@
-# MQTT Ingester
-MQTT Ingester is a lightweight Go service designed to subscribe to one or more MQTT topics, buffer incoming messages, and process them asynchronously through a worker pool.
+# iot-nonna-ingest
+Questa repo fa parte del progetto iot-nonna, in particolare questa repo contiene il servizio di lettura topic mqtt per inserimento valori nel db. La base del programma che fa mqtt ingestion è clonata dalla repo mqttingester. Poi viene aggiunta tutta la parte di interfaccia con il db postgres e l'handling dei topic dinamicamente.
 
-The project provides a clean separation between configuration loading, MQTT communication, and message ingestion logic.
+## Handling dinamico dei topic mqtt:
+L'esigenza nasce dalla possibilità di aggiungere sensori e dispositivi di campionamento (e di conseguenza dei loro topic) con libertà durante il funzionamento del sistema.
+Per farlo allora è necessario utilizzare una struttura ben definita all'interno del db dove per ogni topic viene definita la tabella di destinazione e la colonne da riempire con l'associata tag del payload mqtt.
+All'interno del programma la funzione dedicata all'handling dei messaggi mqtt avrà accesso ai topic con i loro metadati. Di conseguenza interpreterà i dati e li inserirà nel db.
 
-This repository is intended to serve as a **base project** for future MQTT ingestion applications.  
-The core logic is complete and production-ready, while the message processing logic included here is only a **placeholder**, meant to be replaced or extended depending on the needs of each specific project.
+L'handling dei messaggi è fatto a workerpool quindi è fondamentale prestare attenzione alla struttura centrale che imagazzina topic e i loro metadati. Questa struttura deve essere threadsafe e periodicamente deve essere aggiornata interrogando il db per eventuali cambiamenti. Ad ogni cambiamento di questa struttura il programma dovrà anche gestire il subscribe dei nuovi topic e l'unsubscribe dei topci non più esistenti.
 
-The intended way to use this project is to keep the core structure as-is and implement your own ingestion logic by modifying the handlers inside the ingestion module.
-
-## Features
-- Loads configuration from a YAML file, with automatic defaults and validation.
-- Connects to an MQTT broker with configurable QoS and retry policies.
-- Subscribes to multiple topics and pushes received messages into a buffered channel.
-- Uses a worker pool to process incoming messages concurrently.
-- Supports graceful shutdown:
-  - stops message ingestion
-  - drains and closes workers
-  - disconnects from the MQTT broker
- 
-## Configuration
-The service reads its configuration from config.yaml.
-Example fields include:
-- broker
-- clientId
-- qos
-- connectionInterval
-- maxRetry
-- maxDelay
-- topics
-
-If the file is missing, a default one is generated automatically.
-
-## Extending Ingestion Logic
-You can add custom topic handlers inside internal/ingestion/ProcessMessage.
-Each topic can route to a different processing function, database writer, or transformation pipeline.
-
-```
-switch msg.Topic {
-case "sensors/temperature":
-    handleTemperature(msg)
-case "metrics/power":
-    handlePower(msg)
-}
-```
+# Stato repo:
+Ancora in fase di studio preliminare
