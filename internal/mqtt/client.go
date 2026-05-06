@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/chiaf1/iot-nonna-ingest/internal/ingestion"
+	"github.com/chiaf1/iot-nonna-ingest/internal/workers"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -54,7 +54,7 @@ func Subscribe(c mqtt.Client, qOs uint8, topic string) error {
 // Callback function to execute on Subscribe event
 // pushes the message to the WorkerInput buffer
 func onSubscribe(c mqtt.Client, msg mqtt.Message) {
-	ingestion.WorkerInput <- ingestion.Message{
+	workers.WorkerInput <- workers.Message{
 		Topic:   msg.Topic(),
 		Payload: msg.Payload(),
 		Time:    time.Now(),

@@ -20,8 +20,7 @@ type TopicMap struct {
 
 func NewTopicMap() *TopicMap {
 	return &TopicMap{
-		items:      make(map[string]TopicConfig),
-		lastUpdate: time.Now(),
+		items: make(map[string]TopicConfig),
 	}
 }
 

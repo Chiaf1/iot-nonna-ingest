@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/chiaf1/iot-nonna-ingest/internal/config"
-	"github.com/chiaf1/iot-nonna-ingest/internal/ingestion"
 	"github.com/chiaf1/iot-nonna-ingest/internal/mqtt"
+	"github.com/chiaf1/iot-nonna-ingest/internal/workers"
 )
 
 const CONFIG_PATH = "./config.yaml"
@@ -39,7 +39,7 @@ func main() {
 	log.Println("Client connected")
 
 	// Start ingestion workers
-	ingestion.StartWorkers(5, ingestion.ProcessMessage)
+	workers.StartWorkers(5, workers.ProcessMessage)
 
 	// Grace full shut down
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -49,7 +49,7 @@ func main() {
 	log.Println("Service shutdown started...")
 
 	// Closing the channel, will stop all workers
-	close(ingestion.WorkerInput)
+	close(workers.WorkerInput)
 
 	// Closing MQTT connection
 	client.Unsubscribe(conf.Topics...)
