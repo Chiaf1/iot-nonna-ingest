@@ -2,14 +2,13 @@ package ingestion
 
 import (
 	"context"
-	"time"
 
 	"github.com/chiaf1/iot-nonna-ingest/internal/postgres"
 )
 
 // Load topics from db and updates the TopicMap Struct
 func (i *Ingest) RefreshTopics() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), i.QueryTimeout_read)
 	defer cancel()
 
 	// Load topic map from db

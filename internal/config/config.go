@@ -10,8 +10,9 @@ import (
 )
 
 type Config struct {
-	MQTT MqttConfig `yaml:"MQTT"`
-	DB   DbConfig   `yaml:"DB"`
+	MQTT    MqttConfig    `yaml:"MQTT"`
+	DB      DbConfig      `yaml:"DB"`
+	Workers WorkersConfig `yaml:"Workers"`
 }
 
 type MqttConfig struct {
@@ -24,8 +25,13 @@ type MqttConfig struct {
 }
 
 type DbConfig struct {
-	DbURL         string        `yaml:"DbURL"`
-	Query_timeout time.Duration `yaml:"query_timeout"`
+	DbURL               string        `yaml:"DbURL"`
+	Query_timeout_read  time.Duration `yaml:"query_timeout_read"`
+	Query_timeout_write time.Duration `yaml:"query_timeout_write"`
+}
+
+type WorkersConfig struct {
+	Number int `yaml:"number"`
 }
 
 // Load loads the values frrom the file "path" to the struct c, if the file is not present:
@@ -57,7 +63,10 @@ func (c *Config) SetDefault() {
 	c.MQTT.MaxDelay = 60 * time.Second
 
 	c.DB.DbURL = "postgres://user:password@localhost:5432/mydb?sslmode=disable"
-	c.DB.Query_timeout = 5 * time.Second
+	c.DB.Query_timeout_read = 5 * time.Second
+	c.DB.Query_timeout_write = 2 * time.Second
+
+	c.Workers.Number = 5
 }
 
 // Save saves the configs to the "path" using the WriteFileAtomic function
@@ -76,6 +85,9 @@ func (c *Config) Validate() error {
 	}
 	if c.DB.DbURL == "" {
 		return fmt.Errorf("[config][db] connection url cannot be empty")
+	}
+	if c.Workers.Number == 0 {
+		return fmt.Errorf("[config][workers] Workers number cannot be 0")
 	}
 	return nil
 }

@@ -8,15 +8,17 @@ import (
 )
 
 type Ingest struct {
-	DbPool       *pgxpool.Pool
-	QueryTimeout time.Duration
-	TopicMap     *topic.TopicMap
+	DbPool             *pgxpool.Pool
+	QueryTimeout_read  time.Duration
+	QueryTimeout_write time.Duration
+	TopicMap           *topic.TopicMap
 }
 
-func NewIngest(dbPool *pgxpool.Pool, tm *topic.TopicMap, queryTimeout time.Duration) *Ingest {
+func NewIngest(dbPool *pgxpool.Pool, tm *topic.TopicMap, queryTimeoutRead, queryTimeoutWrite time.Duration) *Ingest {
 	return &Ingest{
-		DbPool:       dbPool,
-		TopicMap:     tm,
-		QueryTimeout: queryTimeout,
+		DbPool:             dbPool,
+		TopicMap:           tm,
+		QueryTimeout_read:  queryTimeoutRead,
+		QueryTimeout_write: queryTimeoutWrite,
 	}
 }

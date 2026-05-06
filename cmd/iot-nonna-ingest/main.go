@@ -40,7 +40,7 @@ func main() {
 	// DB connection pool creation - Need to be added jitter and max retrys
 	var dbPool *pgxpool.Pool
 	for {
-		dbPool, err = postgres.OpenPool(conf.DB.DbURL, conf.DB.Query_timeout)
+		dbPool, err = postgres.OpenPool(conf.DB.DbURL, conf.DB.Query_timeout_read)
 		if err == nil {
 			break
 		}
@@ -50,7 +50,7 @@ func main() {
 	// TopicMap creation
 	topicMap := topic.NewTopicMap()
 	// Ingest creation
-	ingest := ingestion.NewIngest(dbPool, topicMap, conf.DB.Query_timeout)
+	ingest := ingestion.NewIngest(dbPool, topicMap, conf.DB.Query_timeout_read, conf.DB.Query_timeout_write)
 	// Topic first load
 	err = ingest.RefreshTopics()
 	if err != nil {
@@ -67,8 +67,8 @@ func main() {
 	}
 	log.Println("Client connected")
 
-	// 4. Start ingestion workers
-	workers.StartWorkers(5, workers.ProcessMessage)
+	// 4. Spawn ingestion workers
+	workers.StartWorkers(conf.Workers.Number, ingest.HandleMessage)
 
 	// 5. Grace full shut down
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
