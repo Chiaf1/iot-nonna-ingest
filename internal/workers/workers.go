@@ -1,4 +1,4 @@
-pac
+package workers
 
 import (
 	"log"
