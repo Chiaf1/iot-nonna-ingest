@@ -6,16 +6,23 @@ import (
 )
 
 type TopicConfig struct {
-	DeviceID     string
-	SensorID     string
-	TableName    string
-	TableColumns map[string]string
+	DeviceID      string
+	SensorID      string
+	TableName     string
+	ColumnSchema  map[string]TopicColumnDef
+	ValueMapping  map[string]interface{}
+	PayloadFormat string
 }
 
 type TopicMap struct {
 	mu         sync.RWMutex
 	items      map[string]TopicConfig
 	lastUpdate time.Time
+}
+
+type TopicColumnDef struct {
+	Column string `json:"column"`
+	Type   string `json:"type"`
 }
 
 func NewTopicMap() *TopicMap {
@@ -80,10 +87,18 @@ func (t *TopicMap) GetTopicList() []string {
 
 // Helper function to make a deep copy of the topic config item in order to make it thread safe
 func copyTopicConfig(tc TopicConfig) TopicConfig {
-	cols := make(map[string]string, len(tc.TableColumns))
-	for k, v := range tc.TableColumns {
+	cols := make(map[string]TopicColumnDef, len(tc.ColumnSchema))
+	for k, v := range tc.ColumnSchema {
 		cols[k] = v
 	}
-	tc.TableColumns = cols
+	tc.ColumnSchema = cols
+
+	if tc.ValueMapping != nil {
+		vm := make(map[string]interface{}, len(tc.ValueMapping))
+		for k, v := range tc.ValueMapping {
+			vm[k] = v
+		}
+		tc.ValueMapping = vm
+	}
 	return tc
 }
