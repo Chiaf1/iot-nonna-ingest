@@ -8,8 +8,8 @@ import (
 )
 
 // Open pool for database connection
-func OpenPool(dsn string) (*pgxpool.Pool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func OpenPool(dsn string, queryTimeout time.Duration) (*pgxpool.Pool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
 	// loading configs drom connection url

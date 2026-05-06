@@ -7,3 +7,4 @@ MQTT:
     maxDelay: 1m0s
 DB:
     DbURL: postgres://user:password@localhost:5432/mydb?sslmode=disable
+    query_timetout: 5s

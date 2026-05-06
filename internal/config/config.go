@@ -24,7 +24,8 @@ type MqttConfig struct {
 }
 
 type DbConfig struct {
-	DbURL string `yaml:"DbURL"`
+	DbURL         string        `yaml:"DbURL"`
+	Query_timeout time.Duration `yaml:"query_timeout"`
 }
 
 // Load loads the values frrom the file "path" to the struct c, if the file is not present:
@@ -56,6 +57,7 @@ func (c *Config) SetDefault() {
 	c.MQTT.MaxDelay = 60 * time.Second
 
 	c.DB.DbURL = "postgres://user:password@localhost:5432/mydb?sslmode=disable"
+	c.DB.Query_timeout = 5 * time.Second
 }
 
 // Save saves the configs to the "path" using the WriteFileAtomic function

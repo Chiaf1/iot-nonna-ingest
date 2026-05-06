@@ -40,7 +40,7 @@ func main() {
 	// DB connection pool creation - Need to be added jitter and max retrys
 	var dbPool *pgxpool.Pool
 	for {
-		dbPool, err = postgres.OpenPool(conf.DB.DbURL)
+		dbPool, err = postgres.OpenPool(conf.DB.DbURL, conf.DB.Query_timeout)
 		if err == nil {
 			break
 		}
@@ -50,7 +50,7 @@ func main() {
 	// TopicMap creation
 	topicMap := topic.NewTopicMap()
 	// Ingest creation
-	ingest := ingestion.NewIngest(dbPool, topicMap)
+	ingest := ingestion.NewIngest(dbPool, topicMap, conf.DB.Query_timeout)
 	// Topic first load
 	err = ingest.RefreshTopics()
 	if err != nil {
