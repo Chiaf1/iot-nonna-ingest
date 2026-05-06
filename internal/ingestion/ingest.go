@@ -13,10 +13,9 @@ type Ingest struct {
 	ctx      *context.Context
 }
 
-func NewIngest(dbPool *pgxpool.Pool, tm *topic.TopicMap, c *context.Context) *Ingest {
+func NewIngest(dbPool *pgxpool.Pool, tm *topic.TopicMap) *Ingest {
 	return &Ingest{
 		DbPool:   dbPool,
 		TopicMap: tm,
-		ctx:      c,
 	}
 }

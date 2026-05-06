@@ -10,13 +10,21 @@ import (
 )
 
 type Config struct {
+	MQTT MqttConfig `yaml:"MQTT"`
+	DB   DbConfig   `yaml:"DB"`
+}
+
+type MqttConfig struct {
 	Broker             string        `yaml:"broker"`
 	ClientID           string        `yaml:"clientId"`
 	QoS                uint8         `yaml:"qos"`
 	ConnectionInterval time.Duration `yaml:"connectionInterval"`
 	MaxRetry           int           `yaml:"maxRetry"`
 	MaxDelay           time.Duration `yaml:"maxDelay"`
-	Topics             []string      `yaml:"topics"`
+}
+
+type DbConfig struct {
+	DbURL string `yaml:"DbURL"`
 }
 
 // Load loads the values frrom the file "path" to the struct c, if the file is not present:
@@ -40,15 +48,14 @@ func (c *Config) Load(path string) error {
 
 // SetDefault sets the config default values
 func (c *Config) SetDefault() {
-	c.Broker = "tcp://localhost:1883"
-	c.ClientID = "go-mqtt-client"
-	c.QoS = 1
-	c.ConnectionInterval = 3 * time.Second
-	c.MaxRetry = 0
-	c.MaxDelay = 60 * time.Second
-	c.Topics = []string{
-		"topic/test",
-	}
+	c.MQTT.Broker = "tcp://localhost:1883"
+	c.MQTT.ClientID = "go-mqtt-client"
+	c.MQTT.QoS = 1
+	c.MQTT.ConnectionInterval = 3 * time.Second
+	c.MQTT.MaxRetry = 0
+	c.MQTT.MaxDelay = 60 * time.Second
+
+	c.DB.DbURL = "postgres://user:password@localhost:5432/mydb?sslmode=disable"
 }
 
 // Save saves the configs to the "path" using the WriteFileAtomic function
@@ -62,11 +69,11 @@ func (c *Config) Save(path string) error {
 
 // Data validation after loading
 func (c *Config) Validate() error {
-	if c.Broker == "" {
-		return fmt.Errorf("broker cannot be empty")
+	if c.MQTT.Broker == "" {
+		return fmt.Errorf("[config][mqtt] broker cannot be empty")
 	}
-	if len(c.Topics) == 0 {
-		return fmt.Errorf("no topics defined")
+	if c.DB.DbURL == "" {
+		return fmt.Errorf("[config][db] connection url cannot be empty")
 	}
 	return nil
 }
