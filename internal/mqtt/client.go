@@ -11,7 +11,7 @@ import (
 )
 
 // This functoin creates a new MQTT client with keepAlive and autoRecconect options active
-func NewClient(broker, clientId string, qOs uint8, retryInterval time.Duration, topics []string) mqtt.Client {
+func NewClient(broker, clientId string, retryInterval time.Duration, onConnect func(mqtt.Client)) mqtt.Client {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(broker)
 	opts.SetClientID(clientId)
@@ -33,10 +33,9 @@ func NewClient(broker, clientId string, qOs uint8, retryInterval time.Duration, 
 
 	opts.OnConnect = func(c mqtt.Client) {
 		log.Println("[MQTT] Connected to broker MQTT")
-		// Subscrive to all topics on connect
-		err := SubscribeAll(c, qOs, topics)
-		if err != nil {
-			log.Printf("[MQTT] Error subscribing to topics: %v", err)
+		// Call to onConnect functoin to handle resubscribe to topics
+		if onConnect != nil {
+			onConnect(c)
 		}
 	}
 

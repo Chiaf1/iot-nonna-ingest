@@ -25,9 +25,10 @@ type MqttConfig struct {
 }
 
 type DbConfig struct {
-	DbURL               string        `yaml:"DbURL"`
-	Query_timeout_read  time.Duration `yaml:"query_timeout_read"`
-	Query_timeout_write time.Duration `yaml:"query_timeout_write"`
+	DbURL                   string        `yaml:"DbURL"`
+	Query_timeout_read      time.Duration `yaml:"query_timeout_read"`
+	Query_timeout_write     time.Duration `yaml:"query_timeout_write"`
+	TopicRefreshingInterval time.Duration `yaml:"topicRefreshingInterval"`
 }
 
 type WorkersConfig struct {
@@ -65,6 +66,7 @@ func (c *Config) SetDefault() {
 	c.DB.DbURL = "postgres://user:password@localhost:5432/mydb?sslmode=disable"
 	c.DB.Query_timeout_read = 5 * time.Second
 	c.DB.Query_timeout_write = 2 * time.Second
+	c.DB.TopicRefreshingInterval = 60 * time.Second
 
 	c.Workers.Number = 5
 }

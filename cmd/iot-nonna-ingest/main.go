@@ -14,6 +14,7 @@ import (
 	"github.com/chiaf1/iot-nonna-ingest/internal/postgres"
 	"github.com/chiaf1/iot-nonna-ingest/internal/topic"
 	"github.com/chiaf1/iot-nonna-ingest/internal/workers"
+	paho_mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -50,30 +51,46 @@ func main() {
 	// TopicMap creation
 	topicMap := topic.NewTopicMap()
 	// Ingest creation
-	ingest := ingestion.NewIngest(dbPool, topicMap, conf.DB.Query_timeout_read, conf.DB.Query_timeout_write)
+	ingest := ingestion.NewIngest(dbPool, topicMap, conf.DB.Query_timeout_read, conf.DB.Query_timeout_write, conf.MQTT.QoS)
 	// Topic first load
 	err = ingest.RefreshTopics()
 	if err != nil {
 		log.Fatalf("[ingest] Error refreshing topics for the first time: %v", err)
 	}
 
-	// 3. MQTT connection
+	// 3. Context for life cycle
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	// 4. MQTT connection
 	// Client creation
-	client := mqtt.NewClient(conf.MQTT.Broker, conf.MQTT.ClientID, conf.MQTT.QoS, conf.MQTT.ConnectionInterval, ingest.TopicMap.GetTopicList())
-	// First connection attempt
+	client := mqtt.NewClient(
+		conf.MQTT.Broker,
+		conf.MQTT.ClientID,
+		conf.MQTT.ConnectionInterval,
+		func(c paho_mqtt.Client) {
+			err := ingest.ResubscribeAll(c)
+			if err != nil {
+				log.Printf("[MQTT] Resubscribe failed: %v", err)
+			}
+		},
+	)
+
+	// 5. First connection attempt
 	err = mqtt.FirstConnect(client, conf.MQTT.MaxRetry, conf.MQTT.ConnectionInterval, conf.MQTT.MaxDelay)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Client connected")
+	log.Println("MQTT connected")
 
-	// 4. Spawn ingestion workers
+	// 6. Spawn ingestion workers
 	workers.StartWorkers(conf.Workers.Number, ingest.HandleMessage)
 
-	// 5. Grace full shut down
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	// 7. Start topic refresher
+	ingest.StartTopicRefresher(ctx, conf.DB.TopicRefreshingInterval, client)
+
+	// 8. Wait for shut down signal
 	<-ctx.Done()
-	stop()
 
 	log.Println("Service shutdown started...")
 
@@ -84,6 +101,9 @@ func main() {
 	client.Unsubscribe(ingest.TopicMap.GetTopicList()...)
 	client.Disconnect(250)
 	time.Sleep(500 * time.Millisecond)
+
+	// Closing db connection
+	dbPool.Close()
 
 	log.Println("Program ended")
 }

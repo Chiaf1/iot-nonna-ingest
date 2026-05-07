@@ -12,13 +12,15 @@ type Ingest struct {
 	QueryTimeout_read  time.Duration
 	QueryTimeout_write time.Duration
 	TopicMap           *topic.TopicMap
+	QoS_mqtt           uint8
 }
 
-func NewIngest(dbPool *pgxpool.Pool, tm *topic.TopicMap, queryTimeoutRead, queryTimeoutWrite time.Duration) *Ingest {
+func NewIngest(dbPool *pgxpool.Pool, tm *topic.TopicMap, queryTimeoutRead, queryTimeoutWrite time.Duration, qos_mqtt uint8) *Ingest {
 	return &Ingest{
 		DbPool:             dbPool,
 		TopicMap:           tm,
 		QueryTimeout_read:  queryTimeoutRead,
 		QueryTimeout_write: queryTimeoutWrite,
+		QoS_mqtt:           qos_mqtt,
 	}
 }

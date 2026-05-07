@@ -9,5 +9,6 @@ DB:
     DbURL: postgres://user:password@localhost:5432/mydb?sslmode=disable
     query_timetout_read: 5s
     query_timetout_write: 2s
+    topicRefreshingInterval: 60s
 Workers:
     number: 5
