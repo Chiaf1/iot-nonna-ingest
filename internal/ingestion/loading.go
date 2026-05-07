@@ -51,7 +51,9 @@ func (i *Ingest) RefreshTopicsAndSubscriptions(mqttClient mqtt.Client) error {
 	if err != nil {
 		return err
 	}
-	mqttClient.Unsubscribe(toUnsub...)
+	if len(toUnsub) > 0 {
+		mqttClient.Unsubscribe(toUnsub...)
+	}
 
 	// 6. Replace TopicMap atomically
 	i.TopicMap.ReplaceMap(newMap)
