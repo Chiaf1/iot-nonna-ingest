@@ -15,7 +15,6 @@ import (
 	"github.com/chiaf1/iot-nonna-ingest/internal/topic"
 	"github.com/chiaf1/iot-nonna-ingest/internal/workers"
 	paho_mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const CONFIG_PATH = "./config.yaml"
@@ -39,14 +38,15 @@ func main() {
 
 	// 2. Connet to db and load topic map
 	// DB connection pool creation - Need to be added jitter and max retrys
-	var dbPool *pgxpool.Pool
-	for {
-		dbPool, err = postgres.OpenPool(conf.DB.DbURL, conf.DB.Query_timeout_read)
-		if err == nil {
-			break
-		}
-		log.Printf("[DB] Error while opening connection: %v \n", err)
-		time.Sleep(5 * time.Second)
+	dbPool, err := postgres.NewPgPool(
+		conf.DB.DbURL,
+		conf.DB.Query_timeout_read,
+		conf.DB.MaxRetry,
+		conf.DB.ConnectionInterval,
+		conf.DB.MaxDelay,
+	)
+	if err != nil {
+		log.Fatalf("Error opening connection to db: %v", err)
 	}
 	// TopicMap creation
 	topicMap := topic.NewTopicMap()

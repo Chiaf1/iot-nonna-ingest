@@ -10,5 +10,8 @@ DB:
     query_timetout_read: 5s
     query_timetout_write: 2s
     topicRefreshingInterval: 60s
+    connectionInterval: 3s
+    maxRetry: 0
+    maxDelay: 1m0s
 Workers:
     number: 5

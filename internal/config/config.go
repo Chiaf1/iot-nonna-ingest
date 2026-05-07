@@ -29,6 +29,9 @@ type DbConfig struct {
 	Query_timeout_read      time.Duration `yaml:"query_timeout_read"`
 	Query_timeout_write     time.Duration `yaml:"query_timeout_write"`
 	TopicRefreshingInterval time.Duration `yaml:"topicRefreshingInterval"`
+	ConnectionInterval      time.Duration `yaml:"connectionInterval"`
+	MaxRetry                int           `yaml:"maxRetry"`
+	MaxDelay                time.Duration `yaml:"maxDelay"`
 }
 
 type WorkersConfig struct {
@@ -67,6 +70,9 @@ func (c *Config) SetDefault() {
 	c.DB.Query_timeout_read = 5 * time.Second
 	c.DB.Query_timeout_write = 2 * time.Second
 	c.DB.TopicRefreshingInterval = 60 * time.Second
+	c.MQTT.ConnectionInterval = 3 * time.Second
+	c.MQTT.MaxRetry = 0
+	c.MQTT.MaxDelay = 60 * time.Second
 
 	c.Workers.Number = 5
 }
