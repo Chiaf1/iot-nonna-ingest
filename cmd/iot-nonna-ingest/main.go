@@ -57,12 +57,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("[ingest] Error refreshing topics for the first time: %v", err)
 	}
+	log.Println("Db connection established and topic map created")
 
-	// 3. Context for life cycle
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	// 4. MQTT connection
+	// 3. MQTT connection
 	// Client creation
 	client := mqtt.NewClient(
 		conf.MQTT.Broker,
@@ -75,22 +72,30 @@ func main() {
 			}
 		},
 	)
+	log.Println("Mqtt client created")
 
-	// 5. First connection attempt
+	// 4. First connection attempt
 	err = mqtt.FirstConnect(client, conf.MQTT.MaxRetry, conf.MQTT.ConnectionInterval, conf.MQTT.MaxDelay)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("MQTT connected")
 
+	// 5. Context for life cycle
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
 	// 6. Spawn ingestion workers
 	workers.StartWorkers(conf.Workers.Number, ingest.HandleMessage)
+	log.Println("Workers started")
 
 	// 7. Start topic refresher
 	ingest.StartTopicRefresher(ctx, conf.DB.TopicRefreshingInterval, client)
+	log.Println("Topic refresher started")
 
 	// 8. Wait for shut down signal
 	<-ctx.Done()
+
+	stop()
 
 	log.Println("Service shutdown started...")
 
