@@ -91,6 +91,9 @@ func (c *Config) Validate() error {
 	if c.MQTT.Broker == "" {
 		return fmt.Errorf("[config][mqtt] broker cannot be empty")
 	}
+	if c.MQTT.QoS > 2 {
+		return fmt.Errorf("[config][mqtt] QoS can't be more than 2")
+	}
 	if c.DB.DbURL == "" {
 		return fmt.Errorf("[config][db] connection url cannot be empty")
 	}

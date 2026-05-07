@@ -76,6 +76,7 @@ A `VIEW` exposes all topic information required by the ingester, including:
 - destination table
 - column schema
 - payload format
+- qos mqtt
 - optional value mapping
 - device and sensor identifiers
 

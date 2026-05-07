@@ -12,6 +12,7 @@ type TopicConfig struct {
 	ColumnSchema  map[string]TopicColumnDef
 	ValueMapping  map[string]interface{}
 	PayloadFormat string
+	Qos_mqtt      *uint8
 }
 
 type TopicMap struct {

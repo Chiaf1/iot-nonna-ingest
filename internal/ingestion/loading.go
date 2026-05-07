@@ -2,9 +2,11 @@ package ingestion
 
 import (
 	"context"
+	"fmt"
 
 	internalMqtt "github.com/chiaf1/iot-nonna-ingest/internal/mqtt"
 	"github.com/chiaf1/iot-nonna-ingest/internal/postgres"
+	"github.com/chiaf1/iot-nonna-ingest/internal/topic"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -45,7 +47,7 @@ func (i *Ingest) RefreshTopicsAndSubscriptions(mqttClient mqtt.Client) error {
 	toUnsub := setDiff(oldTopics, newTopics)
 
 	// 5. Sub to new topics and unsub unused topics
-	err = internalMqtt.SubscribeAll(mqttClient, i.QoS_mqtt, toSub)
+	err = subscribeAllWithQos(mqttClient, toSub, newMap, i.QoS_mqtt)
 	if err != nil {
 		return err
 	}
@@ -91,5 +93,35 @@ func (i *Ingest) ResubscribeAll(c mqtt.Client) error {
 	if len(topics) == 0 {
 		return nil
 	}
-	return internalMqtt.SubscribeAll(c, i.QoS_mqtt, topics)
+	return subscribeAllWithQos(c, topics, i.TopicMap.GetMap(), i.QoS_mqtt)
+}
+
+// Subscribe to all topics in the list using the qos in the metadata if exist or the one in the config if not
+func subscribeAllWithQos(c mqtt.Client, topics []string, src map[string]topic.TopicConfig, qosFallback uint8) error {
+	if len(topics) == 0 {
+		return nil
+	}
+	var errs []error
+	for _, t := range topics {
+		tConf, ok := src[t]
+		var QoS uint8
+		if !ok || tConf.Qos_mqtt == nil {
+			QoS = qosFallback
+		} else {
+			QoS = *tConf.Qos_mqtt
+		}
+		if QoS > 2 {
+			QoS = qosFallback
+		}
+		err := internalMqtt.Subscribe(c, QoS, t)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("Subscribe finished with %d errors: %v", len(errs), errs)
+	}
+
+	return nil
 }

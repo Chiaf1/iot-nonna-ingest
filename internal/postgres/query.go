@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 
 	"github.com/chiaf1/iot-nonna-ingest/internal/topic"
@@ -15,10 +16,11 @@ func LoadTopicsFromDB(ctx context.Context, pool *pgxpool.Pool) (map[string]topic
 			topics,
 			readings_table_name,
 			device_id,
-			sensor_id
+			sensor_id,
 			column_schema,
 			value_mapping,
-			payload_format
+			payload_format,
+			qos_mqtt
 		FROM mqtt_topic_list_metadata
 	`)
 	if err != nil {
@@ -40,11 +42,28 @@ func LoadTopicsFromDB(ctx context.Context, pool *pgxpool.Pool) (map[string]topic
 			columnSchema  []byte
 			valueMapping  []byte
 			payloadFormat string
+			qos           sql.NullInt16
 		)
 
 		// Scan the row to retrive the data
-		if err := rows.Scan(&topicName, &tableName, &deviceID, &sensorID, &columnSchema, &valueMapping, &payloadFormat); err != nil {
+		if err := rows.Scan(
+			&topicName,
+			&tableName,
+			&deviceID,
+			&sensorID,
+			&columnSchema,
+			&valueMapping,
+			&payloadFormat,
+			&qos,
+		); err != nil {
 			return nil, err
+		}
+
+		//mapping qos
+		var qosPtr *uint8
+		if qos.Valid {
+			v := uint8(qos.Int16)
+			qosPtr = &v
 		}
 
 		// parse the columnSchema raw json data into a map[string]topic.TopicColumnDef, if the struct of the json changes this
@@ -70,6 +89,7 @@ func LoadTopicsFromDB(ctx context.Context, pool *pgxpool.Pool) (map[string]topic
 			ColumnSchema:  cols,
 			ValueMapping:  mapping,
 			PayloadFormat: payloadFormat,
+			Qos_mqtt:      qosPtr,
 		}
 	}
 
