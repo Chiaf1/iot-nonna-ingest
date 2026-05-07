@@ -6,16 +6,23 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/chiaf1/iot-nonna-ingest/internal/config"
 	"github.com/chiaf1/iot-nonna-ingest/internal/workers"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 // This functoin creates a new MQTT client with keepAlive and autoRecconect options active
-func NewClient(broker, clientId string, retryInterval time.Duration, onConnect func(mqtt.Client)) mqtt.Client {
+func NewClient(cfg config.MqttConfig, onConnect func(mqtt.Client)) mqtt.Client {
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(broker)
-	opts.SetClientID(clientId)
+	opts.AddBroker(cfg.Broker)
+	opts.SetClientID(cfg.ClientID)
 	opts.SetOrderMatters(false)
+
+	// Optional autentication
+	if cfg.Username != "" {
+		opts.SetUsername(cfg.Username)
+		opts.SetPassword(cfg.Password)
+	}
 
 	// Keep Alive
 	opts.SetKeepAlive(30)
@@ -24,7 +31,7 @@ func NewClient(broker, clientId string, retryInterval time.Duration, onConnect f
 	// Auto Reconnect
 	opts.SetAutoReconnect(true)
 	opts.SetConnectRetry(true)
-	opts.SetConnectRetryInterval(retryInterval)
+	opts.SetConnectRetryInterval(cfg.ConnectionInterval)
 
 	// Error Logging
 	opts.OnConnectionLost = func(client mqtt.Client, err error) {

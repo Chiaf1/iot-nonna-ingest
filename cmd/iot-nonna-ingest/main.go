@@ -62,9 +62,7 @@ func main() {
 	// 3. MQTT connection
 	// Client creation
 	client := mqtt.NewClient(
-		conf.MQTT.Broker,
-		conf.MQTT.ClientID,
-		conf.MQTT.ConnectionInterval,
+		conf.MQTT,
 		func(c paho_mqtt.Client) {
 			err := ingest.ResubscribeAll(c)
 			if err != nil {

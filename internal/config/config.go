@@ -22,6 +22,8 @@ type MqttConfig struct {
 	ConnectionInterval time.Duration `yaml:"connectionInterval"`
 	MaxRetry           int           `yaml:"maxRetry"`
 	MaxDelay           time.Duration `yaml:"maxDelay"`
+	Username           string        `yaml:"username"`
+	Password           string        `yaml:"password"`
 }
 
 type DbConfig struct {
