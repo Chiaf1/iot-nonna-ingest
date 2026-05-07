@@ -95,9 +95,10 @@ The ingester supports multiple payload formats, defined per sensor:
   { "temperature": 22.5, "humidity": 61 }
 ```
 
--**`raw`**
+- **`raw`**
+```
         online
-
+```
 The payload format is stored in the database and interpreted dynamically at runtime.
 
 ***
