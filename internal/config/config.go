@@ -72,9 +72,9 @@ func (c *Config) SetDefault() {
 	c.DB.Query_timeout_read = 5 * time.Second
 	c.DB.Query_timeout_write = 2 * time.Second
 	c.DB.TopicRefreshingInterval = 60 * time.Second
-	c.MQTT.ConnectionInterval = 3 * time.Second
-	c.MQTT.MaxRetry = 0
-	c.MQTT.MaxDelay = 60 * time.Second
+	c.DB.ConnectionInterval = 3 * time.Second
+	c.DB.MaxRetry = 0
+	c.DB.MaxDelay = 60 * time.Second
 
 	c.Workers.Number = 5
 }
