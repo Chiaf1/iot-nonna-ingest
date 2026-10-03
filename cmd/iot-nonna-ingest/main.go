@@ -26,7 +26,7 @@ func main() {
 	}
 	// 1. Load configs from file
 	var conf config.Config
-	err := conf.Load(CONFIG_PATH)
+	err := conf.Load(confPath)
 	if err != nil {
 		log.Fatal(err)
 	}
